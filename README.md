@@ -5,6 +5,8 @@
 
 # FINAL-PROJECT-SQL-PL-2025
 
+
+[HEMMS_PHASE_ONE_FULL_Philimin_27487 (1).pptx](https://github.com/user-attachments/files/23577188/HEMMS_PHASE_ONE_FULL_Philimin_27487.1.pptx)
 # HEMMS - Hospital Equipment Maintenance Management System
 
 ## Description
