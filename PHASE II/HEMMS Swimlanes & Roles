@@ -1,0 +1,53 @@
+| **Swimlane / Actor**       | **Tasks / Responsibilities**                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Administrator**          | - Register new equipment<br>- Assign department<br>- View reports                                                                             |
+| **Maintenance Supervisor** | - Check maintenance requirements<br>- Create maintenance tasks<br>- Assign technicians<br>- Approve completed tasks                           |
+| **Technician**             | - Receive assigned maintenance task<br>- Perform maintenance<br>- Update maintenance table (actions, cost, date)                              |
+| **System**                 | - Generate alerts for upcoming maintenance or warranty expiry<br>- Store maintenance history automatically<br>- Produce BI reports/dashboards |
+
+
+
+Flow Description in Swimlanes Style
+
+[Administrator Lane]
+   └── Register Equipment
+   └── Assign Department
+
+[Supervisor Lane]
+   └── Check Maintenance Requirement
+   └── Create Task
+   └── Assign Technician
+   └── Approve Task Completion
+
+[Technician Lane]
+   └── Receive Task
+   └── Perform Maintenance
+   └── Update Maintenance Table
+
+[System Lane]
+   └── Generate Alerts
+   └── Store Maintenance History
+   └── Produce BI Reports
+
+Diagram Suggestion
+
+Swimlanes (Horizontal or Vertical)
+----------------------------------
+| Administrator | Supervisor | Technician | System |
+-----------------------------------------------------
+| Register Equipment           |             |       | 
+| Assign Department            |             |       | 
+|                              | Create Task |       | 
+|                              | Assign Tech |       | 
+|                              |             | Perform Maintenance |
+|                              |             | Update Maintenance Table |
+|                              |             |       | Generate Alerts & Reports |
+
+. Each vertical column = actor
+
+. Each rectangle = task/activity
+
+. Arrows connect steps sequentially
+
+Swimlane diagram image
+
