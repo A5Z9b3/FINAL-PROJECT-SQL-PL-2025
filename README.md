@@ -1,14 +1,11 @@
 
-# NAMES : HABANABASHAKA Philimin
+# **Student Names:** HABANABASHAKA Philimin
 # **Student ID:** 27487
-
+# Adventist University of Central Africa (AUCA)  
+# Academic Year 2025 – 2026 
 # **Course:** INSY 8311 – Database Development with PL/SQL  
 # **Lecturer:** Eric Maniraguha  
 # **Project Completion Date:** December 7, 2025
-
-
-# FINAL-PROJECT-SQL-PL-2025
-
 
 
 
