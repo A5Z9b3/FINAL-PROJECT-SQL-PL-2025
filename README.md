@@ -1,12 +1,10 @@
 
 # NAMES : HABANABASHAKA Philimin
-**Student ID:** 27487
-# Hospital Equipment Maintenance Monitoring System (HEMMS)
+@ **Student ID:** 27487
 
-
-**Course:** INSY 8311 – Database Development with PL/SQL  
-**Lecturer:** Eric Maniraguha  
-**Project Completion Date:** December 7, 2025
+# **Course:** INSY 8311 – Database Development with PL/SQL  
+# **Lecturer:** Eric Maniraguha  
+# **Project Completion Date:** December 7, 2025
 
 
 # FINAL-PROJECT-SQL-PL-2025
