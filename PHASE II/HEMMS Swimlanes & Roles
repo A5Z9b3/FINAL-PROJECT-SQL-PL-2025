@@ -1,4 +1,4 @@
-| **Swimlane / Actor**       | **Tasks / Responsibilities**                                                                                                                  |
+| Swimlane / Actor      | **Tasks / Responsibilities                                                                                                                 |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Administrator**          | - Register new equipment<br>- Assign department<br>- View reports                                                                             |
 | **Maintenance Supervisor** | - Check maintenance requirements<br>- Create maintenance tasks<br>- Assign technicians<br>- Approve completed tasks                           |
