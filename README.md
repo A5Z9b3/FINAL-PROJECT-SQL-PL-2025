@@ -73,9 +73,6 @@ WarrantyExpiry
 Status
 DepartmentID (FK)
 
-## Project Summary
-Short paragraph (2–3 sentences) describing the problem and solution.
-
 ## Key Objectives
 - Centralize equipment records
 - Automate maintenance scheduling & alerts
