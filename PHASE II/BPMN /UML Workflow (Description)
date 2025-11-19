@@ -1,3 +1,5 @@
+## UML Workflow (Description)
+
 [Start]
    ↓
 Register Equipment → Store to Equipment Table
@@ -17,3 +19,42 @@ Generate Alerts if Deadline is Near
 Reports & BI Analysis
    ↓
 [END]
+
+## UML Activity Diagram Structure
+
+ ┌───────────────────────────────┐
+ │   Start                       │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ Register Equipment            │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ Is Maintenance Needed?        │◄─── Timer Event
+ └───────┬─────────┬─────────────┘
+         │Yes      │No
+         ↓         ↓
+ ┌───────────────────────────────┐
+ │ Assign Technician             │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ Technician Performs Task      │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ Update Maintenance Table      │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ Record in Maintenance_History │
+ └──────────────┬────────────────┘
+                ↓
+ ┌───────────────────────────────┐
+ │ BI Reports / Alerts           │
+ └───────────────────────────────┘
+                ↓
+          ┌──────────────┐
+          │     END      │
+          └──────────────┘
