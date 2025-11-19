@@ -1,0 +1,19 @@
+[Start]
+   ↓
+Register Equipment → Store to Equipment Table
+   ↓
+Check Maintenance Required?
+   ↓(Yes)                 ↓(No)
+Supervisor Assigns Technician → END
+   ↓
+Technician Performs Maintenance 
+   ↓
+Update Maintenance Table
+   ↓
+Store Completed Record in Maintenance_History
+   ↓
+Generate Alerts if Deadline is Near
+   ↓
+Reports & BI Analysis
+   ↓
+[END]
