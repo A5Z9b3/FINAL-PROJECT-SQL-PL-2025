@@ -1,11 +1,12 @@
 
--- ===========================================================
--- Phase IV: Database Creation
--- Project: HEMMS (Hospital Equipment Maintenance Management System)
--- Student: Habanabashaka Philimin
--- PDB Name Format: GrpName_StudentId_FirstName_ProjectName_DB
--- Example: A_27487_philimin_HEMMS_db
--- ===========================================================
+
+
+Phase IV: Database Creation
+Project: HEMMS (Hospital Equipment Maintenance Management System)
+Student: Habanabashaka Philimin
+PDB Name Format: GrpName_StudentId_FirstName_ProjectName_DB
+Example: A_27487_philimin_HEMMS_db
+
 
 -- 1. CREATE PLUGGABLE DATABASE
 CREATE PLUGGABLE DATABASE A_27487_PHILIMIN_HEMMS_DB
