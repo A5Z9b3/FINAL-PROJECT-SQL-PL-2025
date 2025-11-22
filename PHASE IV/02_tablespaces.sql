@@ -1,0 +1,19 @@
+
+-- ===========================================================
+-- Phase IV: Tablespaces
+-- HEMMS Project
+-- ===========================================================
+
+CREATE TABLESPACE hemms_data
+    DATAFILE 'C:\APP\ORADATA\XE\A_27487_PHILIMIN_HEMMS_DB\hemms_data01.dbf'
+    SIZE 200M AUTOEXTEND ON NEXT 50M MAXSIZE UNLIMITED;
+
+CREATE TABLESPACE hemms_index
+    DATAFILE 'C:\APP\ORADATA\XE\A_27487_PHILIMIN_HEMMS_DB\hemms_index01.dbf'
+    SIZE 100M AUTOEXTEND ON NEXT 50M MAXSIZE UNLIMITED;
+
+CREATE TEMPORARY TABLESPACE hemms_temp
+    TEMPFILE 'C:\APP\ORADATA\XE\A_27487_PHILIMIN_HEMMS_DB\hemms_temp01.dbf'
+    SIZE 50M AUTOEXTEND ON NEXT 50M MAXSIZE UNLIMITED;
+
+ALTER DATABASE DEFAULT TEMPORARY TABLESPACE hemms_temp;
