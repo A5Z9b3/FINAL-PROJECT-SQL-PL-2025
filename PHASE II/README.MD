@@ -35,7 +35,5 @@ Example: `A_27487_philimin_HEMMS_db`
 ### Archive Logging
 - Not supported in Oracle XE.
 
----
 
-## GitHub Folder Structure
 
