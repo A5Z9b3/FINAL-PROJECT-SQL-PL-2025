@@ -55,11 +55,3 @@ GRANT ALL PRIVILEGES TO hemms_admin;
 -- 8. ARCHIVE LOGGING
 -- Note: Not supported in Oracle XE; this step is skipped.
 
--- 9. MEMORY PARAMETERS (SGA/PGA) for XE
--- Oracle XE limits SGA/PGA, but example syntax:
--- ALTER SYSTEM SET sga_target=500M SCOPE=SPFILE;
--- ALTER SYSTEM SET pga_aggregate_target=200M SCOPE=SPFILE;
-
--- ===========================================================
--- Phase IV script complete – ready for GitHub submission
--- ===========================================================
