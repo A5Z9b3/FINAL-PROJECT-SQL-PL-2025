@@ -1,1 +1,46 @@
 
+ER Diagram + Data Dictionary (Logical Database Design)
+
+Departments (1) ──< Equipment (n)
+Equipment (1) ──< Maintenance (n)
+Equipment (1) ──< Alerts_Issues (n)
+Technicians (n) ──> Maintenance (n)        [many-to-many → resolved by Maintenance table]
+Users (n) ──> Alerts_Issues (1)             [ReportedBy]
+Users (n) ──> Maintenance (0,n)             [ApprovedBy – optional]
+
+
+[Departments] 1────<|{ Equipment }|────1 [Alerts_Issues]
+    | PK DeptID                     PK EquipmentID          PK AlertID
+    | DeptName                     SerialNumber (U)        EquipmentID (FK)
+    | Location                      Name                    ReportedBy → Users
+    | HeadOfDept                   Category                DateReported
+    |                                Manufacturer           IssueDescription
+                                      Model                   Priority
+                                      PurchaseDate            Status
+                                      PurchaseCost
+                                      WarrantyExpiry
+                                      Status
+                                      DeptID (FK)
+
+[Technicians]                                        [Maintenance]
+    PK TechID                                           PK MaintenanceID
+    FullName                                            EquipmentID (FK)
+    Contact                                             TechID (FK)
+    Specialty                                           MaintenanceDate
+    HireDate                                            ScheduledDate
+    IsActive                                            MaintenanceType (Preventive/Corrective)
+                                                        Cost
+                                                        Description
+                                                        Status
+                                                        ApprovedBy → Users (optional)
+
+[Users]
+    PK UserID
+    Username
+    FullName
+    Role (Admin, Technician, DeptHead, RegularUser)
+    DeptID (FK)
+    PasswordHash
+
+
+
