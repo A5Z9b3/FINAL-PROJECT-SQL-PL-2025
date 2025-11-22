@@ -35,5 +35,11 @@ Example: `A_27487_philimin_HEMMS_db`
 ### Archive Logging
 - Not supported in Oracle XE.
 
+## Instructions
+1. Run `01_create_pdb.sql` to create the PDB.  
+2. Run `02_tablespaces.sql` to create tablespaces.  
+3. Run `03_users.sql` to configure the admin user.  
+4. Connect using `hemms_admin` to manage the database.
+
 
 
