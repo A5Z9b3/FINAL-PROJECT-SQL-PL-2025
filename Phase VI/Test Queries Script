@@ -1,0 +1,115 @@
+
+
+-- =========================================
+-- HMMS Phase VI: TEST QUERIES
+-- =========================================
+
+SET SERVEROUTPUT ON;
+
+-- =========================================
+-- 1. Test Procedure: add_maintenance
+-- =========================================
+DECLARE
+    v_maint_id NUMBER;
+BEGIN
+    add_maintenance(
+        p_equipment_id => 1,
+        p_technician_id => 1,
+        p_cost => 150,
+        p_description => 'Test maintenance task',
+        p_maint_id => v_maint_id
+    );
+    DBMS_OUTPUT.PUT_LINE('Procedure add_maintenance executed. New MaintenanceID: ' || v_maint_id);
+END;
+/
+
+-- =========================================
+-- 2. Test Procedure: update_equipment_status
+-- =========================================
+BEGIN
+    update_equipment_status(1, 'Working');
+    DBMS_OUTPUT.PUT_LINE('Procedure update_equipment_status executed. EquipmentID 1 set to Working.');
+END;
+/
+
+-- =========================================
+-- 3. Test Procedure: log_alert
+-- =========================================
+BEGIN
+    log_alert(1, 'Test alert for EquipmentID 1');
+END;
+/
+
+-- =========================================
+-- 4. Test Function: get_total_maintenance_cost
+-- =========================================
+DECLARE
+    v_total NUMBER;
+BEGIN
+    v_total := get_total_maintenance_cost(1);
+    DBMS_OUTPUT.PUT_LINE('Total maintenance cost for EquipmentID 1: ' || v_total);
+END;
+/
+
+-- =========================================
+-- 5. Test Function: is_equipment_exists
+-- =========================================
+DECLARE
+    v_exists BOOLEAN;
+BEGIN
+    v_exists := is_equipment_exists(1);
+    IF v_exists THEN
+        DBMS_OUTPUT.PUT_LINE('EquipmentID 1 exists.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('EquipmentID 1 does NOT exist.');
+    END IF;
+END;
+/
+
+-- =========================================
+-- 6. Test Function: get_technician_specialty
+-- =========================================
+DECLARE
+    v_specialty VARCHAR2(50);
+BEGIN
+    v_specialty := get_technician_specialty(1);
+    DBMS_OUTPUT.PUT_LINE('TechnicianID 1 specialty: ' || v_specialty);
+END;
+/
+
+-- =========================================
+-- 7. Test Cursor: pending alerts
+-- =========================================
+DECLARE
+    CURSOR c_pending_alerts IS
+        SELECT AlertID, EquipmentID, IssueDescription
+        FROM Alerts
+        WHERE Status = 'Pending';
+
+    v_alert c_pending_alerts%ROWTYPE;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Pending Alerts:');
+    OPEN c_pending_alerts;
+    LOOP
+        FETCH c_pending_alerts INTO v_alert;
+        EXIT WHEN c_pending_alerts%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('AlertID: ' || v_alert.AlertID || ' EquipmentID: ' || v_alert.EquipmentID || ' Issue: ' || v_alert.IssueDescription);
+    END LOOP;
+    CLOSE c_pending_alerts;
+END;
+/
+
+-- =========================================
+-- 8. Test Package: equipment_pkg
+-- =========================================
+BEGIN
+    -- Update status via package
+    equipment_pkg.update_status(1,'Under Maintenance');
+
+    -- Log alert via package
+    equipment_pkg.log_equipment_alert(1,'Package test alert');
+
+    -- Get total maintenance via package
+    DBMS_OUTPUT.PUT_LINE('Total maintenance cost via package for EquipmentID 1: ' || equipment_pkg.total_maintenance(1));
+END;
+/
