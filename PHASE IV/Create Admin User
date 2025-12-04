@@ -1,0 +1,14 @@
+-- file: 03_create_admin_user.sql
+-- Connect to PDB as SYS or as the PDB admin
+
+-- Replace placeholders :ADMIN_USER and :ADMIN_PWD
+CREATE USER :ADMIN_USER IDENTIFIED BY ":ADMIN_PWD"
+ DEFAULT TABLESPACE users
+ TEMPORARY TABLESPACE temp_ts
+ QUOTA UNLIMITED ON data_ts;
+
+-- Grant DBA/required privileges
+GRANT CONNECT, RESOURCE, DBA TO :ADMIN_USER;
+
+-- If you want the user to be able to create sessions and manage backup, etc:
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE PROCEDURE, UNLIMITED TABLESPACE TO :ADMIN_USER;
