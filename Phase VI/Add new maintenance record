@@ -1,0 +1,20 @@
+
+CREATE OR REPLACE PROCEDURE add_maintenance(
+    p_equipment_id IN NUMBER,
+    p_technician_id IN NUMBER,
+    p_cost IN NUMBER,
+    p_description IN VARCHAR2,
+    p_maint_id OUT NUMBER
+) AS
+BEGIN
+    INSERT INTO Maintenance (MaintenanceID, EquipmentID, TechnicianID, MaintenanceDate, Cost, Description)
+    VALUES (seq_maintenance_id.NEXTVAL, p_equipment_id, p_technician_id, SYSDATE, p_cost, p_description)
+    RETURNING MaintenanceID INTO p_maint_id;
+
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error adding maintenance: ' || SQLERRM);
+        ROLLBACK;
+END;
+/
