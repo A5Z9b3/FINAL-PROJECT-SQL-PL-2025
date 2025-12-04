@@ -1,0 +1,324 @@
+-- HMMS: Hospital Maintenance Management System
+-- PHASE V: Table Implementation & Data Insertion
+-- FULLY CORRECTED SCRIPT (Oracle)
+
+/* ===============================
+   1. SEQUENCES
+================================*/
+CREATE SEQUENCE seq_equipment_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_dept_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_maintenance_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_history_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_tech_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_alert_id START WITH 1 INCREMENT BY 1;
+
+/* ===============================
+   2. TABLE CREATION
+================================*/
+
+-- DEPARTMENTS
+CREATE TABLE Departments (
+  DeptID NUMBER PRIMARY KEY,
+  DeptName VARCHAR2(100) NOT NULL UNIQUE,
+  Location VARCHAR2(100),
+  HeadOfDept VARCHAR2(100)
+);
+
+-- TECHNICIANS
+CREATE TABLE Technicians (
+  TechID NUMBER PRIMARY KEY,
+  FullName VARCHAR2(100) NOT NULL,
+  Contact VARCHAR2(20) UNIQUE,
+  Specialty VARCHAR2(50)
+);
+
+-- EQUIPMENT
+CREATE TABLE Equipment (
+  EquipmentID NUMBER PRIMARY KEY,
+  Name VARCHAR2(100) NOT NULL,
+  Category VARCHAR2(50) NOT NULL,
+  PurchaseDate DATE,
+  WarrantyExpiry DATE,
+  Status VARCHAR2(20) NOT NULL,
+  DepartmentID NUMBER,
+  CONSTRAINT fk_equipment_dept FOREIGN KEY(DepartmentID) REFERENCES Departments(DeptID),
+  CONSTRAINT chk_equipment_status CHECK (Status IN ('Working', 'Faulty', 'Under Maintenance', 'Decommissioned')), 
+  CONSTRAINT chk_equipment_category CHECK (Category IN ('Imaging','Laboratory','Monitoring','Surgical','General'))
+);
+
+-- MAINTENANCE
+CREATE TABLE Maintenance (
+  MaintenanceID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  TechnicianID NUMBER NOT NULL,
+  MaintenanceDate DATE NOT NULL,
+  Cost NUMBER(10,2) DEFAULT 0,
+  Description VARCHAR2(200),
+  CONSTRAINT fk_maintenance_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID),
+  CONSTRAINT fk_maintenance_tech FOREIGN KEY(TechnicianID) REFERENCES Technicians(TechID)
+);
+
+-- MAINTENANCE HISTORY
+CREATE TABLE Maintenance_History (
+  HistoryID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  TechnicianID NUMBER NOT NULL,
+  ActionTaken VARCHAR2(200) NOT NULL,
+  DateFixed DATE,
+  Cost NUMBER(10,2),
+  CONSTRAINT fk_history_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID),
+  CONSTRAINT fk_history_tech FOREIGN KEY(TechnicianID) REFERENCES Technicians(TechID)
+);
+
+-- ALERTS
+CREATE TABLE Alerts (
+  AlertID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  IssueDescription VARCHAR2(200) NOT NULL,
+  DateReported DATE NOT NULL,
+  Status VARCHAR2(20) CHECK(Status IN ('Pending','Resolved')),
+  CONSTRAINT fk_alert_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID)
+);
+
+/* ===============================
+   3. INDEXES
+================================*/
+CREATE INDEX idx_equipment_status ON Equipment(Status);
+CREATE INDEX idx_maintenance_equipment ON Maintenance(EquipmentID);
+CREATE INDEX idx_alert_equipment ON Alerts(EquipmentID);
+
+/* ===============================
+   4. SAMPLE DATA INSERTION
+================================*/
+
+-- INSERT DEPARTMENTS
+BEGIN
+  FOR i IN 1..10 LOOP
+    INSERT INTO Departments VALUES (
+      seq_dept_id.NEXTVAL,
+      'Department ' || i,
+      'Block ' || CHR(64 + i),
+      'Dr. Head ' || i
+    );
+  END LOOP;
+END;
+/
+
+-- INSERT TECHNICIANS
+BEGIN
+  FOR i IN 1..20 LOOP
+    INSERT INTO Technicians VALUES (
+      seq_tech_id.NEXTVAL,
+      'Technician ' || i,
+      '078' || TO_CHAR(FLOOR(DBMS_RANDOM.VALUE(1000000,9999999))),
+      CASE MOD(i,4)
+        WHEN 0 THEN 'Electrical'
+        WHEN 1 THEN 'Mechanical'
+        WHEN 2 THEN 'Biomedical'
+        ELSE 'General'
+      END
+    );
+  END LOOP;
+END;
+/
+
+-- INSERT EQUIPMENT
+BEGIN
+  FOR i IN 1..300 LOOP
+    INSERT INTO Equipment VALUES (
+      seq_equipment_id.NEXTVAL,
+      'Equipment ' || i,
+      CASE MOD(i,5)
+        WHEN 0 THEN 'Imaging'
+        WHEN 1 THEN 'Laboratory'
+        WHEN 2 THEN 'Monitoring'
+        WHEN 3 THEN 'Surgical'
+        ELSE 'General'
+      END,
+      SYSDATE - DBMS_RANDOM.VALUE(500,2000),
+      SYSDATE + DBMS_RANDOM.VALUE(30,400),
+      CASE MOD(i,4)
+        WHEN 0 THEN 'Working'
+        WHEN 1 THEN 'Under Maintenance'
+        WHEN 2 THEN 'Faulty'
+        ELSE 'Decommissioned'
+      END,
+      TRUNC(DBMS_RANDOM.VALUE(1,11))
+    );
+  END LOOP;
+END;
+/
+
+BEGIN
+  FOR i IN 1..500 LOOP
+    INSERT INTO Maintenance (MaintenanceID, EquipmentID, TechnicianID, MaintenanceDate, Cost, Description)
+    VALUES (
+      seq_maintenance_id.NEXTVAL,
+      (SELECT EquipmentID FROM (SELECT EquipmentID FROM Equipment ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+      (SELECT TechID FROM (SELECT TechID FROM Technicians ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+      SYSDATE - DBMS_RANDOM.VALUE(1,365),
+      ROUND(DBMS_RANDOM.VALUE(10,500),2),
+      'Maintenance task ' || i
+    );
+  END LOOP;
+END;
+/
+
+
+
+-- INSERT ALERTS
+BEGIN
+  FOR i IN 1..200 LOOP
+    INSERT INTO Alerts (AlertID, EquipmentID, IssueDescription, DateReported, Status)
+    VALUES (
+      seq_alert_id.NEXTVAL,
+      (SELECT EquipmentID FROM (SELECT EquipmentID FROM Equipment ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+      'Issue reported for equipment ' || i,
+      SYSDATE - DBMS_RANDOM.VALUE(1,30),
+      CASE MOD(i,2) WHEN 0 THEN 'Pending' ELSE 'Resolved' END
+    );
+  END LOOP;
+END;
+/
+
+BEGIN
+  FOR i IN 1..500 LOOP
+    INSERT INTO Maintenance_History (HistoryID, EquipmentID, TechnicianID, ActionTaken, DateFixed, Cost)
+    VALUES (
+      seq_history_id.NEXTVAL,
+      (SELECT EquipmentID FROM (SELECT EquipmentID FROM Equipment ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+      (SELECT TechID FROM (SELECT TechID FROM Technicians ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+      'Action taken ' || i,
+      SYSDATE - DBMS_RANDOM.VALUE(1,365),
+      ROUND(DBMS_RANDOM.VALUE(10,500),2)
+    );
+  END LOOP;
+END;
+/
+
+
+/* ===============================
+   5. VALIDATION & TESTING QUERIES
+================================*/
+
+-- BASIC SELECT
+SELECT * FROM Equipment FETCH FIRST 20 ROWS ONLY;
+
+-- JOIN: Equipment with department
+SELECT e.Name, e.Category, e.Status, d.DeptName
+FROM Equipment e
+JOIN Departments d ON e.DepartmentID = d.DeptID;
+
+-- AGGREGATION
+SELECT Category, COUNT(*) AS TotalEquipment
+FROM Equipment
+GROUP BY Category;
+
+-- SUBQUERY: equipment with unresolved alerts
+SELECT Name
+FROM Equipment
+WHERE EquipmentID IN (
+  SELECT EquipmentID FROM Alerts WHERE Status='Pending'
+);
+
+-- DATA INTEGRITY CHECK
+SELECT COUNT(*) AS OrphanMaintenance
+FROM Maintenance m
+WHERE NOT EXISTS (SELECT 1 FROM Equipment e WHERE e.EquipmentID = m.EquipmentID);
+
+SELECT MAX(EquipmentID) FROM Equipment;
+ALTER SEQUENCE seq_equipment_id INCREMENT BY 304;
+SELECT seq_equipment_id.NEXTVAL FROM dual;
+ALTER SEQUENCE seq_equipment_id INCREMENT BY 1;
+
+-- EquipmentID
+(SELECT EquipmentID FROM Equipment ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 1 ROWS ONLY)
+
+-- TechnicianID
+(SELECT TechID FROM Technicians ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 1 ROWS ONLY)
+
+-- Corrected Maintenance insert block
+
+(SELECT EquipmentID FROM Equipment ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 1 ROWS ONLY)
+
+SELECT MAX(MaintenanceID) FROM Maintenance;
+ALTER SEQUENCE seq_maintenance_id INCREMENT BY 501; 
+SELECT seq_maintenance_id.NEXTVAL FROM dual;
+ALTER SEQUENCE seq_maintenance_id INCREMENT BY 1;
+
+
+SELECT DISTINCT Status FROM Alerts;
+
+
+ALTER TABLE Alerts DROP CONSTRAINT SYS_C008237;
+
+UPDATE Alerts
+SET Status = 'Pending'
+WHERE TRIM(Status) = 'Open' OR Status IS NULL;
+
+UPDATE Alerts
+SET Status = 'Resolved'
+WHERE TRIM(Status) = 'In Progress';
+
+SELECT DISTINCT Status FROM Alerts;
+
+ALTER TABLE Alerts
+ADD CONSTRAINT chk_alert_status
+CHECK (Status IN ('Pending','Resolved'));
+
+
+
+
+
+SELECT MAX(HistoryID) FROM Maintenance_History;
+
+-- Temporarily set increment to jump past max
+ALTER SEQUENCE seq_history_id INCREMENT BY 503;  -- 502 + 1
+
+-- Advance the sequence
+SELECT seq_history_id.NEXTVAL FROM dual;
+
+-- Reset increment to 1
+ALTER SEQUENCE seq_history_id INCREMENT BY 1;
+
+select * from alerts;
+select * from departments;
+select * from MAINTENANCE;
+select * from MAINTENANCE_HISTORY;
+select * from TECHNICIANS;
+select * from EQUIPMENT;
+
+
+SELECT * FROM Equipment WHERE ROWNUM <= 10;
+SELECT * FROM Technicians WHERE ROWNUM <= 10;
+SELECT * FROM Departments WHERE ROWNUM <= 10;
+
+SELECT e.Name, e.Category, d.DeptName, m.MaintenanceDate, m.Cost
+FROM Equipment e
+JOIN Departments d ON e.DepartmentID = d.DeptID
+LEFT JOIN Maintenance m ON e.EquipmentID = m.EquipmentID
+WHERE ROWNUM <= 10;
+
+
+-- Aggregation
+SELECT d.DeptName, COUNT(*) AS EquipmentCount
+FROM Equipment e
+JOIN Departments d ON e.DepartmentID = d.DeptID
+GROUP BY d.DeptName;
+
+SELECT e.Name, SUM(m.Cost) AS TotalMaintenanceCost
+FROM Equipment e
+JOIN Maintenance m ON e.EquipmentID = m.EquipmentID
+GROUP BY e.Name
+ORDER BY TotalMaintenanceCost DESC
+FETCH FIRST 10 ROWS ONLY;
+
+-- Subqueries
+SELECT e.Name, 
+       (SELECT COUNT(*) FROM Maintenance m WHERE m.EquipmentID = e.EquipmentID) AS MaintenanceCount
+FROM Equipment e
+ORDER BY MaintenanceCount DESC
+FETCH FIRST 10 ROWS ONLY;
+
+-- Alerts check
+SELECT Status, COUNT(*) FROM Alerts GROUP BY Status;
