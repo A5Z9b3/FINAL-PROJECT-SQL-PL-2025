@@ -1,0 +1,18 @@
+
+DECLARE
+    CURSOR c_pending_alerts IS
+        SELECT AlertID, EquipmentID, IssueDescription
+        FROM Alerts
+        WHERE Status = 'Pending';
+
+    v_alert c_pending_alerts%ROWTYPE;
+BEGIN
+    OPEN c_pending_alerts;
+    LOOP
+        FETCH c_pending_alerts INTO v_alert;
+        EXIT WHEN c_pending_alerts%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('AlertID: ' || v_alert.AlertID || ' EquipmentID: ' || v_alert.EquipmentID);
+    END LOOP;
+    CLOSE c_pending_alerts;
+END;
+/
