@@ -1,0 +1,7 @@
+
+-- Rank technicians by total maintenance cost
+SELECT TechnicianID, SUM(Cost) AS TotalCost,
+       RANK() OVER (ORDER BY SUM(Cost) DESC) AS Rank,
+       DENSE_RANK() OVER (ORDER BY SUM(Cost) DESC) AS DenseRank
+FROM Maintenance
+GROUP BY TechnicianID;
