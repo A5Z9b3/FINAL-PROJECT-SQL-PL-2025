@@ -1,0 +1,10 @@
+
+CREATE OR REPLACE FUNCTION is_equipment_exists(
+    p_equipment_id NUMBER
+) RETURN BOOLEAN AS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM Equipment WHERE EquipmentID = p_equipment_id;
+    RETURN (v_count > 0);
+END;
+/
