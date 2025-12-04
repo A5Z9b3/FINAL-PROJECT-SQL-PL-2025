@@ -1,1 +1,28 @@
 
+# Hospital Maintenance Management System (HMMS) - Phase V
+
+## Overview
+This project implements a **Hospital Maintenance Management System** database in Oracle.  
+Phase V focuses on **table creation, data insertion, and validation**.
+
+## Folder Structure
+- `create_tables.sql` : Scripts to create tables, sequences, and constraints.
+- `insert_data.sql`  : Scripts to insert realistic test data (100-500+ rows per table).
+- `validate_data.sql`: Scripts to verify data integrity, relationships, and perform queries.
+
+## Tables
+- **Departments** : Department details
+- **Technicians** : Technician details
+- **Equipment** : Hospital equipment
+- **Maintenance** : Maintenance events
+- **Maintenance_History** : Maintenance history records
+- **Alerts** : Equipment alerts
+
+## Constraints
+- Primary keys, foreign keys, NOT NULL, UNIQUE, and CHECK constraints applied
+- `Status` fields validated against business rules
+
+## How to Run
+1. Run `create_tables.sql` first to set up tables and sequences.
+2. Run `insert_data.sql` to populate tables with test data.
+3. Run `validate_data.sql` to verify data integrity and relationships.
