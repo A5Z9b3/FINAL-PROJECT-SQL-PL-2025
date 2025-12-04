@@ -1,0 +1,20 @@
+
+CREATE OR REPLACE PROCEDURE log_alert(
+    p_equipment_id IN NUMBER,
+    p_description IN VARCHAR2,
+    p_status IN VARCHAR2 DEFAULT 'Pending'
+) AS
+    v_alert_id NUMBER;
+BEGIN
+    INSERT INTO Alerts (AlertID, EquipmentID, IssueDescription, DateReported, Status)
+    VALUES (seq_alert_id.NEXTVAL, p_equipment_id, p_description, SYSDATE, p_status)
+    RETURNING AlertID INTO v_alert_id;
+
+    DBMS_OUTPUT.PUT_LINE('Alert logged with ID: ' || v_alert_id);
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error logging alert: ' || SQLERRM);
+        ROLLBACK;
+END;
+/
