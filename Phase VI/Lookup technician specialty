@@ -1,0 +1,13 @@
+
+CREATE OR REPLACE FUNCTION get_technician_specialty(
+    p_tech_id NUMBER
+) RETURN VARCHAR2 AS
+    v_specialty VARCHAR2(50);
+BEGIN
+    SELECT Specialty INTO v_specialty FROM Technicians WHERE TechID = p_tech_id;
+    RETURN v_specialty;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 'Unknown';
+END;
+/
