@@ -1,0 +1,16 @@
+
+DECLARE
+    TYPE t_maintenance IS TABLE OF Maintenance.MaintenanceID%TYPE;
+    v_ids t_maintenance;
+
+BEGIN
+    SELECT MaintenanceID BULK COLLECT INTO v_ids
+    FROM Maintenance
+    WHERE MaintenanceDate < SYSDATE - 180;
+
+    FORALL i IN v_ids.FIRST .. v_ids.LAST
+        DELETE FROM Maintenance WHERE MaintenanceID = v_ids(i);
+
+    COMMIT;
+END;
+/
