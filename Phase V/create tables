@@ -1,1 +1,82 @@
 
+
+# PHASE V: Table Implementation & Data Insertion
+-- FULLY CORRECTED SCRIPT (Oracle)
+
+
+   ## 1 SEQUENCES
+
+CREATE SEQUENCE seq_equipment_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_dept_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_maintenance_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_history_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_tech_id START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_alert_id START WITH 1 INCREMENT BY 1;
+
+/* ===============================
+   2. TABLE CREATION
+================================*/
+
+-- DEPARTMENTS
+CREATE TABLE Departments (
+  DeptID NUMBER PRIMARY KEY,
+  DeptName VARCHAR2(100) NOT NULL UNIQUE,
+  Location VARCHAR2(100),
+  HeadOfDept VARCHAR2(100)
+);
+
+-- TECHNICIANS
+CREATE TABLE Technicians (
+  TechID NUMBER PRIMARY KEY,
+  FullName VARCHAR2(100) NOT NULL,
+  Contact VARCHAR2(20) UNIQUE,
+  Specialty VARCHAR2(50)
+);
+
+-- EQUIPMENT
+CREATE TABLE Equipment (
+  EquipmentID NUMBER PRIMARY KEY,
+  Name VARCHAR2(100) NOT NULL,
+  Category VARCHAR2(50) NOT NULL,
+  PurchaseDate DATE,
+  WarrantyExpiry DATE,
+  Status VARCHAR2(20) NOT NULL,
+  DepartmentID NUMBER,
+  CONSTRAINT fk_equipment_dept FOREIGN KEY(DepartmentID) REFERENCES Departments(DeptID),
+  CONSTRAINT chk_equipment_status CHECK (Status IN ('Working', 'Faulty', 'Under Maintenance', 'Decommissioned')), 
+  CONSTRAINT chk_equipment_category CHECK (Category IN ('Imaging','Laboratory','Monitoring','Surgical','General'))
+);
+
+-- MAINTENANCE
+CREATE TABLE Maintenance (
+  MaintenanceID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  TechnicianID NUMBER NOT NULL,
+  MaintenanceDate DATE NOT NULL,
+  Cost NUMBER(10,2) DEFAULT 0,
+  Description VARCHAR2(200),
+  CONSTRAINT fk_maintenance_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID),
+  CONSTRAINT fk_maintenance_tech FOREIGN KEY(TechnicianID) REFERENCES Technicians(TechID)
+);
+
+-- MAINTENANCE HISTORY
+CREATE TABLE Maintenance_History (
+  HistoryID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  TechnicianID NUMBER NOT NULL,
+  ActionTaken VARCHAR2(200) NOT NULL,
+  DateFixed DATE,
+  Cost NUMBER(10,2),
+  CONSTRAINT fk_history_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID),
+  CONSTRAINT fk_history_tech FOREIGN KEY(TechnicianID) REFERENCES Technicians(TechID)
+);
+
+-- ALERTS
+CREATE TABLE Alerts (
+  AlertID NUMBER PRIMARY KEY,
+  EquipmentID NUMBER NOT NULL,
+  IssueDescription VARCHAR2(200) NOT NULL,
+  DateReported DATE NOT NULL,
+  Status VARCHAR2(20) CHECK(Status IN ('Pending','Resolved')),
+  CONSTRAINT fk_alert_equipment FOREIGN KEY(EquipmentID) REFERENCES Equipment(EquipmentID)
+);
