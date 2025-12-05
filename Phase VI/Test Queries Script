@@ -113,3 +113,24 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Total maintenance cost via package for EquipmentID 1: ' || equipment_pkg.total_maintenance(1));
 END;
 /
+
+
+DECLARE
+    v_maint_id NUMBER;
+    v_equipment_id NUMBER;
+    v_tech_id NUMBER;
+BEGIN
+    SELECT EquipmentID INTO v_equipment_id FROM Equipment WHERE ROWNUM = 1 ORDER BY DBMS_RANDOM.VALUE;
+    SELECT TechID INTO v_tech_id FROM Technicians WHERE ROWNUM = 1 ORDER BY DBMS_RANDOM.VALUE;
+
+    add_maintenance(
+        p_equipment_id => v_equipment_id,
+        p_technician_id => v_tech_id,
+        p_cost => 150,
+        p_description => 'Random test maintenance',
+        p_maint_id => v_maint_id
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Procedure add_maintenance executed. New MaintenanceID: ' || v_maint_id);
+END;
+/
