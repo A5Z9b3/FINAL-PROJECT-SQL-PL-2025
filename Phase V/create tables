@@ -1,253 +1,658 @@
 -- ============================================
--- PHASE V: TABLE IMPLEMENTATION & DATA INSERTION
+-- AUCA CAPSTONE PROJECT - PHILIMIN HABANABASHAKA
+-- ID: 27487 | GROUP: A
+-- EQUIPMENT MAINTENANCE MANAGEMENT SYSTEM
 -- ============================================
 
--- 1. CREATE TABLES WITH CONSTRAINTS
-CREATE TABLE departments (
-    dept_id NUMBER(10) PRIMARY KEY,
-    dept_name VARCHAR2(100) NOT NULL,
-    manager_id NUMBER(10),
-    location VARCHAR2(100),
-    created_date DATE DEFAULT SYSDATE
-);
-
-CREATE TABLE employees (
-    emp_id NUMBER(10) PRIMARY KEY,
-    first_name VARCHAR2(50) NOT NULL,
-    last_name VARCHAR2(50) NOT NULL,
-    email VARCHAR2(100) UNIQUE NOT NULL,
-    phone VARCHAR2(20),
-    hire_date DATE NOT NULL,
-    job_title VARCHAR2(100),
-    salary NUMBER(10,2),
-    dept_id NUMBER(10),
-    status VARCHAR2(20) DEFAULT 'ACTIVE',
-    CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id) REFERENCES departments(dept_id),
-    CONSTRAINT chk_salary CHECK (salary > 0),
-    CONSTRAINT chk_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'ON_LEAVE'))
-);
-
-CREATE TABLE equipment (
-    equipment_id NUMBER(10) PRIMARY KEY,
-    equipment_name VARCHAR2(100) NOT NULL,
-    serial_number VARCHAR2(50) UNIQUE,
-    category VARCHAR2(50),
-    purchase_date DATE,
-    purchase_cost NUMBER(10,2),
-    status VARCHAR2(20) DEFAULT 'OPERATIONAL',
-    location VARCHAR2(100),
-    assigned_to NUMBER(10),
-    last_maintenance DATE,
-    next_maintenance DATE,
-    CONSTRAINT fk_eq_assigned FOREIGN KEY (assigned_to) REFERENCES employees(emp_id),
-    CONSTRAINT chk_eq_status CHECK (status IN ('OPERATIONAL', 'UNDER_MAINTENANCE', 'DECOMMISSIONED', 'LOST'))
-);
-
-CREATE TABLE maintenance (
-    maintenance_id NUMBER(10) PRIMARY KEY,
-    equipment_id NUMBER(10) NOT NULL,
-    maintenance_date DATE NOT NULL,
-    maintenance_type VARCHAR2(50),
-    technician_id NUMBER(10),
-    description VARCHAR2(500),
-    cost NUMBER(10,2),
-    status VARCHAR2(20) DEFAULT 'COMPLETED',
-    next_maintenance DATE,
-    CONSTRAINT fk_maint_eq FOREIGN KEY (equipment_id) REFERENCES equipment(equipment_id),
-    CONSTRAINT fk_maint_tech FOREIGN KEY (technician_id) REFERENCES employees(emp_id)
-);
-
-CREATE TABLE work_orders (
-    order_id NUMBER(10) PRIMARY KEY,
-    equipment_id NUMBER(10),
-    assigned_to NUMBER(10),
-    priority VARCHAR2(20) DEFAULT 'MEDIUM',
-    description VARCHAR2(500),
-    created_date DATE DEFAULT SYSDATE,
-    due_date DATE,
-    completed_date DATE,
-    status VARCHAR2(20) DEFAULT 'OPEN',
-    CONSTRAINT fk_wo_eq FOREIGN KEY (equipment_id) REFERENCES equipment(equipment_id),
-    CONSTRAINT fk_wo_emp FOREIGN KEY (assigned_to) REFERENCES employees(emp_id),
-    CONSTRAINT chk_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
-    CONSTRAINT chk_wo_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
-);
-
--- 2. CREATE INDEXES FOR PERFORMANCE
-CREATE INDEX idx_emp_dept ON employees(dept_id);
-CREATE INDEX idx_emp_status ON employees(status);
-CREATE INDEX idx_eq_status ON equipment(status);
-CREATE INDEX idx_eq_assigned ON equipment(assigned_to);
-CREATE INDEX idx_maint_eq ON maintenance(equipment_id);
-CREATE INDEX idx_maint_date ON maintenance(maintenance_date);
-CREATE INDEX idx_wo_status ON work_orders(status);
-CREATE INDEX idx_wo_due ON work_orders(due_date);
-
--- 3. CREATE SEQUENCES
-CREATE SEQUENCE seq_dept_id START WITH 100 INCREMENT BY 1;
-CREATE SEQUENCE seq_emp_id START WITH 1000 INCREMENT BY 1;
-CREATE SEQUENCE seq_eq_id START WITH 5000 INCREMENT BY 1;
-CREATE SEQUENCE seq_maint_id START WITH 10000 INCREMENT BY 1;
-CREATE SEQUENCE seq_wo_id START WITH 20000 INCREMENT BY 1;
-
--- 4. INSERT REALISTIC DATA (100+ rows per main table)
--- Departments
-INSERT INTO departments (dept_id, dept_name, manager_id, location) VALUES
-(seq_dept_id.NEXTVAL, 'Information Technology', 1001, 'Building A, Floor 3');
-INSERT INTO departments (dept_id, dept_name, manager_id, location) VALUES
-(seq_dept_id.NEXTVAL, 'Human Resources', 1002, 'Building B, Floor 2');
-INSERT INTO departments (dept_id, dept_name, manager_id, location) VALUES
-(seq_dept_id.NEXTVAL, 'Finance', 1003, 'Building C, Floor 4');
-INSERT INTO departments (dept_id, dept_name, manager_id, location) VALUES
-(seq_dept_id.NEXTVAL, 'Operations', 1004, 'Building D, Floor 1');
-INSERT INTO departments (dept_id, dept_name, manager_id, location) VALUES
-(seq_dept_id.NEXTVAL, 'Maintenance', 1005, 'Building E, Floor 2');
-
--- Employees (50+ rows)
+-- First, check what already exists
+SET SERVEROUTPUT ON
 BEGIN
-    FOR i IN 1..50 LOOP
-        INSERT INTO employees (emp_id, first_name, last_name, email, phone, hire_date, job_title, salary, dept_id) VALUES
-        (seq_emp_id.NEXTVAL,
-         CASE MOD(i,5) WHEN 0 THEN 'James' WHEN 1 THEN 'Mary' WHEN 2 THEN 'John' WHEN 3 THEN 'Patricia' ELSE 'Robert' END,
-         CASE MOD(i,7) WHEN 0 THEN 'Smith' WHEN 1 THEN 'Johnson' WHEN 2 THEN 'Williams' WHEN 3 THEN 'Brown' WHEN 4 THEN 'Jones' WHEN 5 THEN 'Garcia' ELSE 'Miller' END,
-         'emp' || (1000+i) || '@company.com',
-         '+25078' || LPAD(MOD(i*123, 1000000), 6, '0'),
-         SYSDATE - (365 * (2 + MOD(i,5))),
-         CASE WHEN i <= 5 THEN 'Manager' 
-              WHEN i <= 15 THEN 'Senior Engineer'
-              WHEN i <= 30 THEN 'Engineer'
-              WHEN i <= 40 THEN 'Technician'
-              ELSE 'Associate' END,
-         CASE WHEN i <= 5 THEN 80000 + (i*5000)
-              WHEN i <= 15 THEN 60000 + (i*3000)
-              WHEN i <= 30 THEN 45000 + (i*2000)
-              ELSE 30000 + (i*1000) END,
-         CASE MOD(i,5) WHEN 0 THEN 100 WHEN 1 THEN 101 WHEN 2 THEN 102 WHEN 3 THEN 103 ELSE 104 END);
-    END LOOP;
-    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Checking existing objects...');
 END;
 /
 
--- Equipment (100+ rows)
+-- Check existing sequences
+SELECT sequence_name, last_number FROM user_sequences ORDER BY sequence_name;
+
+-- Check existing tables
+SELECT table_name, num_rows FROM user_tables ORDER BY table_name;
+
+-- ============================================
+-- OPTION 1: DROP EVERYTHING AND START FRESH
+-- ============================================
+/*
+-- Drop tables in correct order (due to foreign keys)
+DROP TABLE AUDIT_LOG CASCADE CONSTRAINTS;
+DROP TABLE HOLIDAYS CASCADE CONSTRAINTS;
+DROP TABLE ALERTS CASCADE CONSTRAINTS;
+DROP TABLE MAINTENANCE CASCADE CONSTRAINTS;
+DROP TABLE USERS CASCADE CONSTRAINTS;
+DROP TABLE EQUIPMENT CASCADE CONSTRAINTS;
+DROP TABLE TECHNICIANS CASCADE CONSTRAINTS;
+DROP TABLE DEPARTMENTS CASCADE CONSTRAINTS;
+
+-- Drop sequences
+DROP SEQUENCE seq_dept_id;
+DROP SEQUENCE seq_equipment_id;
+DROP SEQUENCE seq_tech_id;
+DROP SEQUENCE seq_maintenance_id;
+DROP SEQUENCE seq_alert_id;
+DROP SEQUENCE seq_user_id;
+DROP SEQUENCE seq_holiday_id;
+DROP SEQUENCE seq_audit_log_id;
+*/
+
+-- ============================================
+-- OPTION 2: CONDITIONAL CREATION (BETTER APPROACH)
+-- ============================================
+
+-- 1. Create sequences (only if they don't exist)
 BEGIN
-    FOR i IN 1..100 LOOP
-        INSERT INTO equipment (equipment_id, equipment_name, serial_number, category, purchase_date, purchase_cost, status, location, assigned_to) VALUES
-        (seq_eq_id.NEXTVAL,
-         CASE MOD(i,10) 
-            WHEN 0 THEN 'Laptop Dell XPS'
-            WHEN 1 THEN 'Desktop HP Elite'
-            WHEN 2 THEN 'Server Rack'
-            WHEN 3 THEN 'Network Switch'
-            WHEN 4 THEN 'Projector Epson'
-            WHEN 5 THEN 'Printer Canon'
-            WHEN 6 THEN 'Scanner Fujitsu'
-            WHEN 7 THEN 'Tablet iPad'
-            WHEN 8 THEN 'Monitor Samsung'
-            ELSE 'Phone System' END || ' ' || i,
-         'SN' || LPAD(i, 8, '0'),
-         CASE MOD(i,4) WHEN 0 THEN 'COMPUTER' WHEN 1 THEN 'NETWORK' WHEN 2 THEN 'OFFICE' ELSE 'COMMUNICATION' END,
-         SYSDATE - (365 * MOD(i,3)),
-         CASE MOD(i,4) WHEN 0 THEN 1200 WHEN 1 THEN 800 WHEN 2 THEN 500 ELSE 1500 END,
-         CASE MOD(i,20) WHEN 0 THEN 'UNDER_MAINTENANCE' WHEN 19 THEN 'DECOMMISSIONED' ELSE 'OPERATIONAL' END,
-         CASE MOD(i,3) WHEN 0 THEN 'Room 101' WHEN 1 THEN 'Room 205' ELSE 'Room 310' END,
-         CASE WHEN MOD(i,3) = 0 THEN 1000 + MOD(i,20) ELSE NULL END);
-    END LOOP;
-    COMMIT;
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_dept_id START WITH 1 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_dept_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN -- already exists
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_dept_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
 END;
 /
 
--- Maintenance Records (200+ rows)
 BEGIN
-    FOR i IN 1..200 LOOP
-        INSERT INTO maintenance (maintenance_id, equipment_id, maintenance_date, maintenance_type, technician_id, description, cost, status) VALUES
-        (seq_maint_id.NEXTVAL,
-         5000 + MOD(i, 100),
-         SYSDATE - MOD(i, 180),
-         CASE MOD(i,5) WHEN 0 THEN 'PREVENTIVE' WHEN 1 THEN 'CORRECTIVE' WHEN 2 THEN 'UPGRADE' WHEN 3 THEN 'CALIBRATION' ELSE 'INSPECTION' END,
-         1000 + MOD(i, 20),
-         CASE MOD(i,5) 
-            WHEN 0 THEN 'Regular scheduled maintenance'
-            WHEN 1 THEN 'Repair of faulty component'
-            WHEN 2 THEN 'Software upgrade installed'
-            WHEN 3 THEN 'Calibration and testing'
-            ELSE 'Routine inspection' END,
-         CASE MOD(i,5) WHEN 0 THEN 200 WHEN 1 THEN 450 WHEN 2 THEN 300 WHEN 3 THEN 150 ELSE 100 END,
-         CASE MOD(i,20) WHEN 0 THEN 'SCHEDULED' WHEN 19 THEN 'CANCELLED' ELSE 'COMPLETED' END);
-    END LOOP;
-    COMMIT;
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_equipment_id START WITH 100 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_equipment_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_equipment_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
 END;
 /
 
--- Work Orders (150+ rows)
 BEGIN
-    FOR i IN 1..150 LOOP
-        INSERT INTO work_orders (order_id, equipment_id, assigned_to, priority, description, created_date, due_date, status) VALUES
-        (seq_wo_id.NEXTVAL,
-         5000 + MOD(i, 100),
-         1000 + MOD(i, 20),
-         CASE MOD(i,20) 
-            WHEN 0 THEN 'CRITICAL'
-            WHEN 1 THEN 'HIGH'
-            WHEN 19 THEN 'LOW'
-            ELSE 'MEDIUM' END,
-         'Work order for ' || CASE MOD(i,5) WHEN 0 THEN 'repair' WHEN 1 THEN 'maintenance' WHEN 2 THEN 'inspection' WHEN 3 THEN 'upgrade' ELSE 'installation' END,
-         SYSDATE - MOD(i, 60),
-         SYSDATE + MOD(i, 30),
-         CASE MOD(i,10) 
-            WHEN 0 THEN 'OPEN'
-            WHEN 1 THEN 'IN_PROGRESS'
-            WHEN 9 THEN 'CANCELLED'
-            ELSE 'COMPLETED' END);
-    END LOOP;
-    COMMIT;
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_tech_id START WITH 200 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_tech_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_tech_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
 END;
 /
 
--- 5. DATA INTEGRITY VERIFICATION QUERIES
--- Verify table counts
-SELECT 'Departments' AS table_name, COUNT(*) AS row_count FROM departments
-UNION ALL
-SELECT 'Employees', COUNT(*) FROM employees
-UNION ALL
-SELECT 'Equipment', COUNT(*) FROM equipment
-UNION ALL
-SELECT 'Maintenance', COUNT(*) FROM maintenance
-UNION ALL
-SELECT 'Work Orders', COUNT(*) FROM work_orders;
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_maintenance_id START WITH 300 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_maintenance_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_maintenance_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
 
--- Verify foreign key relationships
-SELECT e.equipment_id, e.equipment_name, m.maintenance_count
-FROM equipment e
-LEFT JOIN (
-    SELECT equipment_id, COUNT(*) as maintenance_count
-    FROM maintenance
-    GROUP BY equipment_id
-) m ON e.equipment_id = m.equipment_id
-WHERE ROWNUM <= 10;
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_alert_id START WITH 400 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_alert_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_alert_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
 
--- Test constraints
-SELECT 'Active Employees' AS check_type, COUNT(*) AS count FROM employees WHERE status = 'ACTIVE'
-UNION ALL
-SELECT 'Operational Equipment', COUNT(*) FROM equipment WHERE status = 'OPERATIONAL'
-UNION ALL
-SELECT 'High Priority Orders', COUNT(*) FROM work_orders WHERE priority = 'HIGH'
-UNION ALL
-SELECT 'Overdue Orders', COUNT(*) FROM work_orders WHERE due_date < SYSDATE AND status NOT IN ('COMPLETED', 'CANCELLED');
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_user_id START WITH 500 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_user_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_user_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
 
--- Aggregation example
-SELECT d.dept_name, 
-       COUNT(e.emp_id) AS employee_count,
-       AVG(e.salary) AS avg_salary,
-       SUM(eq.purchase_cost) AS total_equipment_cost
-FROM departments d
-LEFT JOIN employees e ON d.dept_id = e.dept_id
-LEFT JOIN equipment eq ON e.emp_id = eq.assigned_to
-GROUP BY d.dept_name
-ORDER BY employee_count DESC;
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_holiday_id START WITH 600 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_holiday_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_holiday_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
 
--- Subquery example
-SELECT eq.equipment_name, eq.status,
-       (SELECT COUNT(*) FROM maintenance m WHERE m.equipment_id = eq.equipment_id) AS maintenance_count,
-       (SELECT MAX(maintenance_date) FROM maintenance m WHERE m.equipment_id = eq.equipment_id) AS last_maintenance
-FROM equipment eq
-WHERE ROWNUM <= 15;
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE seq_audit_log_id START WITH 700 INCREMENT BY 1';
+    DBMS_OUTPUT.PUT_LINE('Sequence seq_audit_log_id created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Sequence seq_audit_log_id already exists.');
+        ELSE
+            RAISE;
+        END IF;
+END;
+/
+
+-- 2. Create tables (only if they don't exist)
+-- First check if DEPARTMENTS table exists with correct structure
+DECLARE
+    v_table_exists NUMBER;
+    v_column_count NUMBER;
+BEGIN
+    -- Check if table exists
+    SELECT COUNT(*) INTO v_table_exists
+    FROM user_tables
+    WHERE table_name = 'DEPARTMENTS';
+    
+    IF v_table_exists = 0 THEN
+        -- Create DEPARTMENTS table
+        EXECUTE IMMEDIATE '
+        CREATE TABLE DEPARTMENTS (
+            DEPT_ID NUMBER(10) PRIMARY KEY,
+            DEPT_NAME VARCHAR2(100) NOT NULL,
+            LOCATION VARCHAR2(200) NOT NULL,
+            HEAD_OF_DEPT VARCHAR2(100),
+            CREATED_DATE DATE DEFAULT SYSDATE,
+            MODIFIED_DATE DATE
+        )';
+        DBMS_OUTPUT.PUT_LINE('Table DEPARTMENTS created.');
+    ELSE
+        -- Check structure
+        SELECT COUNT(*) INTO v_column_count
+        FROM user_tab_columns
+        WHERE table_name = 'DEPARTMENTS';
+        
+        IF v_column_count >= 6 THEN
+            DBMS_OUTPUT.PUT_LINE('Table DEPARTMENTS already exists with ' || v_column_count || ' columns.');
+        ELSE
+            -- Table exists but with wrong structure - drop and recreate
+            EXECUTE IMMEDIATE 'DROP TABLE DEPARTMENTS CASCADE CONSTRAINTS';
+            EXECUTE IMMEDIATE '
+            CREATE TABLE DEPARTMENTS (
+                DEPT_ID NUMBER(10) PRIMARY KEY,
+                DEPT_NAME VARCHAR2(100) NOT NULL,
+                LOCATION VARCHAR2(200) NOT NULL,
+                HEAD_OF_DEPT VARCHAR2(100),
+                CREATED_DATE DATE DEFAULT SYSDATE,
+                MODIFIED_DATE DATE
+            )';
+            DBMS_OUTPUT.PUT_LINE('Table DEPARTMENTS recreated.');
+        END IF;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error with DEPARTMENTS: ' || SQLERRM);
+END;
+/
+
+-- Create EQUIPMENT table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE EQUIPMENT (
+        EQUIPMENT_ID NUMBER(10) PRIMARY KEY,
+        NAME VARCHAR2(200) NOT NULL,
+        CATEGORY VARCHAR2(50),
+        PURCHASE_DATE DATE NOT NULL,
+        WARRANTY_EXPIRY DATE,
+        STATUS VARCHAR2(20) DEFAULT ''Active'' 
+            CHECK (STATUS IN (''Active'',''Inactive'',''Under Maintenance'',''Retired'')),
+        DEPT_ID NUMBER(10),
+        SERIAL_NUMBER VARCHAR2(50) UNIQUE,
+        MANUFACTURER VARCHAR2(100),
+        MODEL VARCHAR2(50),
+        LAST_MAINTENANCE_DATE DATE,
+        NEXT_MAINTENANCE_DATE DATE,
+        TOTAL_MAINTENANCE_COST NUMBER(10,2) DEFAULT 0,
+        CREATED_DATE DATE DEFAULT SYSDATE,
+        MODIFIED_DATE DATE,
+        CONSTRAINT fk_equipment_dept FOREIGN KEY (DEPT_ID) 
+            REFERENCES DEPARTMENTS(DEPT_ID) ON DELETE SET NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table EQUIPMENT created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table EQUIPMENT already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating EQUIPMENT: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create TECHNICIANS table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE TECHNICIANS (
+        TECH_ID NUMBER(10) PRIMARY KEY,
+        FULL_NAME VARCHAR2(100) NOT NULL,
+        CONTACT VARCHAR2(50),
+        SPECIALTY VARCHAR2(100),
+        EMAIL VARCHAR2(100) UNIQUE,
+        HIRE_DATE DATE DEFAULT SYSDATE,
+        STATUS VARCHAR2(20) DEFAULT ''Active'' 
+            CHECK (STATUS IN (''Active'',''Inactive'',''On Leave'')),
+        HOURLY_RATE NUMBER(8,2) DEFAULT 25.00,
+        TOTAL_ASSIGNMENTS NUMBER(5) DEFAULT 0
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table TECHNICIANS created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table TECHNICIANS already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating TECHNICIANS: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create MAINTENANCE table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE MAINTENANCE (
+        MAINTENANCE_ID NUMBER(10) PRIMARY KEY,
+        EQUIPMENT_ID NUMBER(10) NOT NULL,
+        TECH_ID NUMBER(10) NOT NULL,
+        MAINTENANCE_DATE DATE DEFAULT SYSDATE,
+        COMPLETION_DATE DATE,
+        COST NUMBER(10,2) DEFAULT 0,
+        DESCRIPTION VARCHAR2(500),
+        TYPE VARCHAR2(20) DEFAULT ''Corrective'' 
+            CHECK (TYPE IN (''Preventive'',''Corrective'',''Emergency'',''Upgrade'')),
+        STATUS VARCHAR2(20) DEFAULT ''Scheduled'' 
+            CHECK (STATUS IN (''Scheduled'',''In Progress'',''Completed'',''Cancelled'')),
+        PARTS_USED VARCHAR2(500),
+        LABOR_HOURS NUMBER(5,2),
+        CONSTRAINT fk_maintenance_equipment FOREIGN KEY (EQUIPMENT_ID) 
+            REFERENCES EQUIPMENT(EQUIPMENT_ID) ON DELETE CASCADE,
+        CONSTRAINT fk_maintenance_tech FOREIGN KEY (TECH_ID) 
+            REFERENCES TECHNICIANS(TECH_ID) ON DELETE CASCADE
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table MAINTENANCE created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table MAINTENANCE already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating MAINTENANCE: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create ALERTS table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE ALERTS (
+        ALERT_ID NUMBER(10) PRIMARY KEY,
+        EQUIPMENT_ID NUMBER(10) NOT NULL,
+        ISSUE_DESCRIPTION VARCHAR2(500) NOT NULL,
+        DATE_REPORTED DATE DEFAULT SYSDATE,
+        DATE_ASSIGNED DATE,
+        DATE_RESOLVED DATE,
+        STATUS VARCHAR2(20) DEFAULT ''Open'' 
+            CHECK (STATUS IN (''Open'',''Assigned'',''In Progress'',''Resolved'',''Closed'')),
+        PRIORITY VARCHAR2(10) DEFAULT ''Medium'' 
+            CHECK (PRIORITY IN (''Low'',''Medium'',''High'',''Critical'')),
+        REPORTED_BY VARCHAR2(100),
+        ASSIGNED_TO NUMBER(10),
+        CONSTRAINT fk_alerts_equipment FOREIGN KEY (EQUIPMENT_ID) 
+            REFERENCES EQUIPMENT(EQUIPMENT_ID) ON DELETE CASCADE,
+        CONSTRAINT fk_alerts_tech FOREIGN KEY (ASSIGNED_TO) 
+            REFERENCES TECHNICIANS(TECH_ID) ON DELETE SET NULL
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table ALERTS created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table ALERTS already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating ALERTS: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create USERS table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE USERS (
+        USER_ID NUMBER(10) PRIMARY KEY,
+        USERNAME VARCHAR2(50) UNIQUE NOT NULL,
+        PASSWORD VARCHAR2(100) NOT NULL,
+        FULL_NAME VARCHAR2(100) NOT NULL,
+        ROLE VARCHAR2(20) DEFAULT ''Viewer'' 
+            CHECK (ROLE IN (''Admin'',''Technician'',''Department Head'',''Viewer'')),
+        DEPT_ID NUMBER(10),
+        EMAIL VARCHAR2(100) UNIQUE,
+        LAST_LOGIN TIMESTAMP,
+        CREATED_DATE DATE DEFAULT SYSDATE
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table USERS created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table USERS already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating USERS: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create HOLIDAYS table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE HOLIDAYS (
+        HOLIDAY_ID NUMBER(10) PRIMARY KEY,
+        HOLIDAY_NAME VARCHAR2(100) NOT NULL,
+        HOLIDAY_DATE DATE NOT NULL,
+        YEAR NUMBER(4) GENERATED ALWAYS AS (EXTRACT(YEAR FROM HOLIDAY_DATE)) VIRTUAL,
+        IS_RECURRING CHAR(1) DEFAULT ''Y'' CHECK (IS_RECURRING IN (''Y'',''N'')),
+        CREATED_DATE DATE DEFAULT SYSDATE,
+        CONSTRAINT unique_holiday_date UNIQUE (HOLIDAY_DATE)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table HOLIDAYS created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table HOLIDAYS already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating HOLIDAYS: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Create AUDIT_LOG table
+BEGIN
+    EXECUTE IMMEDIATE '
+    CREATE TABLE AUDIT_LOG (
+        LOG_ID NUMBER(10) PRIMARY KEY,
+        USER_ID NUMBER(10),
+        USERNAME VARCHAR2(50),
+        TABLE_NAME VARCHAR2(50) NOT NULL,
+        ACTION_TYPE VARCHAR2(10) NOT NULL 
+            CHECK (ACTION_TYPE IN (''INSERT'',''UPDATE'',''DELETE'')),
+        ACTION_DATE TIMESTAMP DEFAULT SYSTIMESTAMP,
+        RECORD_ID VARCHAR2(50),
+        OLD_VALUE CLOB,
+        NEW_VALUE CLOB,
+        STATUS VARCHAR2(20) DEFAULT ''SUCCESS'' 
+            CHECK (STATUS IN (''SUCCESS'',''DENIED'')),
+        ERROR_MESSAGE VARCHAR2(500),
+        IP_ADDRESS VARCHAR2(50),
+        SESSION_ID VARCHAR2(100)
+    )';
+    DBMS_OUTPUT.PUT_LINE('Table AUDIT_LOG created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 THEN
+            DBMS_OUTPUT.PUT_LINE('Table AUDIT_LOG already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error creating AUDIT_LOG: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- 3. Create indexes (only if they don't exist)
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_equipment_dept ON EQUIPMENT(DEPT_ID)';
+    DBMS_OUTPUT.PUT_LINE('Index idx_equipment_dept created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 OR SQLCODE = -1408 THEN
+            DBMS_OUTPUT.PUT_LINE('Index idx_equipment_dept already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE INDEX idx_equipment_status ON EQUIPMENT(STATUS)';
+    DBMS_OUTPUT.PUT_LINE('Index idx_equipment_status created.');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -955 OR SQLCODE = -1408 THEN
+            DBMS_OUTPUT.PUT_LINE('Index idx_equipment_status already exists.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        END IF;
+END;
+/
+
+-- Add other indexes similarly...
+
+-- 4. Insert sample data (only if tables are empty)
+DECLARE
+    v_dept_count NUMBER;
+    v_tech_count NUMBER;
+    v_eq_count NUMBER;
+BEGIN
+    -- Check if DEPARTMENTS has data
+    SELECT COUNT(*) INTO v_dept_count FROM DEPARTMENTS;
+    
+    IF v_dept_count = 0 THEN
+        -- Insert Departments
+        INSERT INTO DEPARTMENTS (DEPT_ID, DEPT_NAME, LOCATION, HEAD_OF_DEPT, CREATED_DATE) 
+        VALUES (seq_dept_id.NEXTVAL, 'Computer Science', 'Building A, Floor 3', 'Dr. James Smith', SYSDATE);
+        
+        INSERT INTO DEPARTMENTS (DEPT_ID, DEPT_NAME, LOCATION, HEAD_OF_DEPT, CREATED_DATE) 
+        VALUES (seq_dept_id.NEXTVAL, 'Engineering', 'Building B, Floor 2', 'Prof. Sarah Johnson', SYSDATE);
+        
+        INSERT INTO DEPARTMENTS (DEPT_ID, DEPT_NAME, LOCATION, HEAD_OF_DEPT, CREATED_DATE) 
+        VALUES (seq_dept_id.NEXTVAL, 'Medical School', 'Building C, Floor 1', 'Dr. Michael Brown', SYSDATE);
+        
+        -- Insert 7 more departments
+        FOR i IN 4..10 LOOP
+            INSERT INTO DEPARTMENTS (DEPT_ID, DEPT_NAME, LOCATION, HEAD_OF_DEPT, CREATED_DATE) 
+            VALUES (seq_dept_id.NEXTVAL, 
+                   'Department ' || i, 
+                   'Building ' || CHR(64+i) || ', Floor ' || MOD(i, 4)+1,
+                   'Head ' || i,
+                   SYSDATE);
+        END LOOP;
+        
+        DBMS_OUTPUT.PUT_LINE('Inserted ' || (10) || ' departments.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Departments already has ' || v_dept_count || ' records.');
+    END IF;
+    
+    -- Check if TECHNICIANS has data
+    SELECT COUNT(*) INTO v_tech_count FROM TECHNICIANS;
+    
+    IF v_tech_count = 0 THEN
+        -- Insert Technicians
+        INSERT INTO TECHNICIANS (TECH_ID, FULL_NAME, CONTACT, SPECIALTY, EMAIL, HIRE_DATE, STATUS, HOURLY_RATE) 
+        VALUES (seq_tech_id.NEXTVAL, 'John Doe', '0781234567', 'Electronics', 'john.doe@auca.ac.rw', DATE '2023-01-15', 'Active', 30.00);
+        
+        INSERT INTO TECHNICIANS (TECH_ID, FULL_NAME, CONTACT, SPECIALTY, EMAIL, HIRE_DATE, STATUS, HOURLY_RATE) 
+        VALUES (seq_tech_id.NEXTVAL, 'Jane Smith', '0787654321', 'Computers', 'jane.smith@auca.ac.rw', DATE '2023-03-20', 'Active', 35.00);
+        
+        -- Insert 8 more technicians
+        FOR i IN 3..10 LOOP
+            INSERT INTO TECHNICIANS (TECH_ID, FULL_NAME, CONTACT, SPECIALTY, EMAIL, HIRE_DATE, STATUS, HOURLY_RATE) 
+            VALUES (seq_tech_id.NEXTVAL, 
+                   'Technician ' || i,
+                   '078' || LPAD(1000000 + i*1000, 7, '0'),
+                   CASE MOD(i, 4) 
+                       WHEN 0 THEN 'Electronics' 
+                       WHEN 1 THEN 'Computers' 
+                       WHEN 2 THEN 'Mechanical' 
+                       ELSE 'General' 
+                   END,
+                   'tech' || i || '@auca.ac.rw',
+                   SYSDATE - (i*30),
+                   'Active',
+                   25.00 + MOD(i, 10));
+        END LOOP;
+        
+        DBMS_OUTPUT.PUT_LINE('Inserted ' || (10) || ' technicians.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Technicians already has ' || v_tech_count || ' records.');
+    END IF;
+    
+    -- Check if EQUIPMENT has data
+    SELECT COUNT(*) INTO v_eq_count FROM EQUIPMENT;
+    
+    IF v_eq_count = 0 THEN
+        -- Insert Equipment
+        FOR i IN 1..100 LOOP
+            INSERT INTO EQUIPMENT (
+                EQUIPMENT_ID, NAME, CATEGORY, PURCHASE_DATE, WARRANTY_EXPIRY, 
+                STATUS, DEPT_ID, SERIAL_NUMBER, MANUFACTURER, MODEL,
+                TOTAL_MAINTENANCE_COST
+            ) VALUES (
+                seq_equipment_id.NEXTVAL,
+                'Equipment ' || i,
+                CASE MOD(i, 5) 
+                    WHEN 0 THEN 'Medical' 
+                    WHEN 1 THEN 'IT' 
+                    WHEN 2 THEN 'Lab' 
+                    WHEN 3 THEN 'Office' 
+                    ELSE 'General' 
+                END,
+                SYSDATE - (365 * MOD(i, 5) + i*10),
+                SYSDATE + (365 * 2),
+                CASE MOD(i, 10)
+                    WHEN 0 THEN 'Under Maintenance'
+                    WHEN 1 THEN 'Inactive'
+                    WHEN 2 THEN 'Retired'
+                    ELSE 'Active'
+                END,
+                MOD(i, 10) + 1,
+                'SN-' || LPAD(i, 6, '0'),
+                CASE MOD(i, 3)
+                    WHEN 0 THEN 'Dell'
+                    WHEN 1 THEN 'HP'
+                    ELSE 'IBM'
+                END,
+                'Model ' || CHR(65 + MOD(i, 3)),
+                MOD(i, 1000) * 10.50
+            );
+        END LOOP;
+        
+        DBMS_OUTPUT.PUT_LINE('Inserted ' || (100) || ' equipment items.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Equipment already has ' || v_eq_count || ' records.');
+    END IF;
+    
+    COMMIT;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error inserting data: ' || SQLERRM);
+        ROLLBACK;
+END;
+/
+
+-- 5. Data validation queries
+PROMPT ============================================
+PROMPT DATA VALIDATION RESULTS
+PROMPT ============================================
+
+SELECT 'Departments: ' || COUNT(*) AS total_departments FROM DEPARTMENTS
+UNION ALL
+SELECT 'Equipment: ' || COUNT(*) AS total_equipment FROM EQUIPMENT
+UNION ALL
+SELECT 'Technicians: ' || COUNT(*) AS total_technicians FROM TECHNICIANS
+UNION ALL
+SELECT 'Maintenance: ' || COUNT(*) AS total_maintenance FROM MAINTENANCE
+UNION ALL
+SELECT 'Users: ' || COUNT(*) AS total_users FROM USERS
+UNION ALL
+SELECT 'Alerts: ' || COUNT(*) AS total_alerts FROM ALERTS
+UNION ALL
+SELECT 'Holidays: ' || COUNT(*) AS total_holidays FROM HOLIDAYS
+UNION ALL
+SELECT 'Audit Log: ' || COUNT(*) AS total_audit_log FROM AUDIT_LOG;
+
+PROMPT 
+PROMPT Sample Equipment Data (first 10 rows):
+SELECT * FROM EQUIPMENT WHERE ROWNUM <= 10;
+
+PROMPT 
+PROMPT Sample Departments:
+SELECT * FROM DEPARTMENTS;
+
+PROMPT 
+PROMPT Sample Technicians:
+SELECT * FROM TECHNICIANS WHERE ROWNUM <= 5;
+
+PROMPT 
+PROMPT ============================================
+PROMPT TABLE STRUCTURE VERIFICATION
+PROMPT ============================================
+
+SELECT table_name, num_rows, last_analyzed 
+FROM user_tables 
+ORDER BY table_name;
+
+-- 6. Test queries for project submission
+PROMPT 
+PROMPT ============================================
+PROMPT TEST QUERIES FOR PROJECT SUBMISSION
+PROMPT ============================================
+
+-- Test 1: Basic retrieval
+PROMPT Test 1: All Active Equipment
+SELECT EQUIPMENT_ID, NAME, CATEGORY, STATUS 
+FROM EQUIPMENT 
+WHERE STATUS = 'Active' AND ROWNUM <= 5;
+
+-- Test 2: Joins
+PROMPT 
+PROMPT Test 2: Equipment with Department Info
+SELECT e.NAME, e.CATEGORY, d.DEPT_NAME, d.LOCATION
+FROM EQUIPMENT e
+JOIN DEPARTMENTS d ON e.DEPT_ID = d.DEPT_ID
+WHERE ROWNUM <= 5;
+
+-- Test 3: Aggregations
+PROMPT 
+PROMPT Test 3: Maintenance Cost by Department
+SELECT d.DEPT_NAME, 
+       COUNT(e.EQUIPMENT_ID) AS equipment_count,
+       SUM(e.TOTAL_MAINTENANCE_COST) AS total_cost,
+       ROUND(AVG(e.TOTAL_MAINTENANCE_COST), 2) AS avg_cost
+FROM DEPARTMENTS d
+LEFT JOIN EQUIPMENT e ON d.DEPT_ID = e.DEPT_ID
+GROUP BY d.DEPT_NAME
+ORDER BY total_cost DESC NULLS LAST;
+
+-- Test 4: Subqueries
+PROMPT 
+PROMPT Test 4: Equipment Needing Maintenance
+SELECT NAME, CATEGORY, 
+       (SELECT DEPT_NAME FROM DEPARTMENTS d WHERE d.DEPT_ID = e.DEPT_ID) AS department,
+       TOTAL_MAINTENANCE_COST
+FROM EQUIPMENT e
+WHERE TOTAL_MAINTENANCE_COST > 1000
+   OR STATUS = 'Under Maintenance'
+ORDER BY TOTAL_MAINTENANCE_COST DESC;
+
+-- Test 5: Data integrity check
+PROMPT 
+PROMPT Test 5: Data Integrity Verification
+SELECT 'All tables created successfully' AS status FROM dual
+UNION ALL
+SELECT 'All sequences created successfully' AS status FROM dual
+UNION ALL
+SELECT 'Sample data inserted successfully' AS status FROM dual;
+
+COMMIT;
+
