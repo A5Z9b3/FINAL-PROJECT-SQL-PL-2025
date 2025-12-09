@@ -1,7 +1,7 @@
 
 ### **Part C: PowerPoint Presentation (10 Slides)**
 
-**Slide 1: Title Slide**
+**Slide 1: ADVANCED PROGRAMMER**
 - Hospital Equipment Management System
 - Habanabashaka Philimin | ID: 27487 | Group A
 - PL/SQL Capstone Project
