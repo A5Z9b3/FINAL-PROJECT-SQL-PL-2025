@@ -1,5 +1,5 @@
 
-### **Part C: PowerPoint Presentation (10 Slides)**
+
 
 **Slide 1: ADVANCED PROGRAMMER**
 - Hospital Equipment Management System
