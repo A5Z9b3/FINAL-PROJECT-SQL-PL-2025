@@ -71,21 +71,4 @@
 - GitHub repository link
 - Thank you & Questions
 
-**File Name:** `A_27487_Philimin_HospitalEquipment_Presentation.pptx`
 
----
-
-## **SUBMISSION CHECKLIST**
-
-### **Before Final Submission:**
-- [ ] All code is ORIGINAL (no plagiarism)
-- [ ] All procedures/functions tested and working
-- [ ] GitHub repository properly organized
-- [ ] Meaningful commit messages throughout
-- [ ] Screenshots include project name/database name
-- [ ] PowerPoint has exactly 10 slides
-- [ ] All documentation complete and professional
-- [ ] BI implementation included (optional 2 marks)
-- [ ] Submitted BEFORE December 7, 2025 deadline
-
-### **GitHub Commit Strategy:**
