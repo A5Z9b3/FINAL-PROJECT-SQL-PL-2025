@@ -1664,3 +1664,20 @@ BEGIN
     test_phase_vii_triggers_fixed();
 END;
 /
+--- final test 
+
+
+
+-- Check all triggers are valid
+SELECT trigger_name, status FROM user_triggers WHERE status != 'VALID';
+
+-- Check recent audit logs
+SELECT COUNT(*) FROM AUDIT_LOG WHERE Status = 'DENIED';
+
+-- Test the restriction function
+SELECT get_day_info FROM DUAL;
+
+-- Test with different dates
+SELECT simulate_day_check(SYSDATE) FROM DUAL;
+SELECT simulate_day_check(SYSDATE + 1) FROM DUAL;
+SELECT simulate_day_check(TO_DATE('27-12-2025', 'DD-MM-YYYY')) FROM DUAL; -- Saturday
